@@ -10,16 +10,13 @@ load_dotenv()
 
 import os
 import base64
-import hashlib
 import sys
 from pathlib import Path
 from PIL import Image
 from cryptography.hazmat.primitives import hashes, serialization, padding as sym_padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.exceptions import InvalidSignature
 
-# Константи мають збігатися з тими, що у sign_image.py / verify_image.py
 KDF_SALT_SIZE = 16
 KDF_ITERS     = 100_000
 
@@ -63,7 +60,6 @@ def main():
         print(f"[-] File not found: {signed_path}")
         sys.exit(1)
 
-    # Витяг payload
     img = Image.open(signed_path)
     payload_b64 = img.info.get("Signature")
     if not payload_b64:
@@ -71,14 +67,12 @@ def main():
         sys.exit(2)
     print(f"[+] Found payload of length {len(payload_b64)} bytes (Base64)")
 
-    # Правильний пароль
     correct_pwd = os.getenv("AES_PASS", "")
     if not correct_pwd:
         print("[-] Please set AES_PASS in your .env or environment")
         sys.exit(3)
     password = correct_pwd.encode()
 
-    # Спроба з правильним паролем
     try:
         sig = decrypt_payload(payload_b64, password)
         print("✅ Decryption with correct password succeeded.")
@@ -86,7 +80,6 @@ def main():
     except Exception as e:
         print("❌ Decryption with correct password failed:", type(e).__name__, e)
 
-    # Спроба з неправильним паролем
     try:
         bad_pwd = b"wrong_password"
         decrypt_payload(payload_b64, bad_pwd)
