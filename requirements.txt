@@ -3,3 +3,5 @@ pillow
 pytest
 pylint
 black
+python-dotenv
+argparse
